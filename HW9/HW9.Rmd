@@ -1,0 +1,57 @@
+---
+title: "Homework 9"
+author: "William Cohen"
+date: "4/09/2021"
+output: word_document
+---
+
+```{r}
+library(tidycensus)
+library(tidyverse)
+library(dplyr)
+library(ggplot2)
+
+#1.
+census_api_key("0f7eb25778acbe5ec82c76b0715a3d2f10d4c42d")
+install = TRUE
+
+#2.
+#a.
+v15 <- load_variables(2015, "acs5", cache = TRUE)
+view(v15)
+
+CA <- get_acs(geography = "county", 
+              variables = c(medincome = "B01001A_011"), 
+              state = "CA", 
+              year = 2015)
+
+CA
+
+#b.
+CA %>%
+  filter(estimate > 30000) %>%
+  arrange(desc(estimate)) -> CA_sort
+
+CA_sort
+
+#c.
+CA %>%
+  filter(estimate == 51644, moe == 667)
+
+#d.
+CA_sort %>%
+  ggplot(aes(x = estimate)) +
+  geom_boxplot(fill = "red")
+
+#e.
+CA_sort %>%
+  mutate(NAME = gsub(" County, California", "", NAME)) %>%
+  ggplot(aes(x = estimate, y = reorder(NAME, estimate))) +
+  geom_errorbarh(aes(xmin = estimate - moe, xmax = estimate + moe)) +
+  geom_point(color = "blue", size = 3) +
+  labs(title = "Median Income for White Males by County",
+       subtitle = "2014-2018 American Community Survey",
+       y = "",
+       x = "ACS estimate (bars represent margin of error)")
+
+```
